@@ -1,0 +1,15 @@
+﻿.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.db
+*.sqlite3
+*.pt
+*.pth
+*.onnx
+runs/
+datasets/
+frontend/node_modules/
+frontend/dist/
+.env
+.DS_Store

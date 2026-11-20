@@ -1,0 +1,10 @@
+challan_id,registration_no,violation_type,offense_section,fine_amount,location,evidence_file
+CH001,MH02AG4657,Jumping signal,MMVR 239/177 MVA,500,Bandra West Junction Mumbai,ch001.jpg
+CH002,MH01UD7924,Speed violating by driver (LMV),Sec 112/183(1) MVA (LMV),2000,Eastern Express Highway Mumbai,ch002.jpg
+CH003,MH12CJ6881,Without Seatbelt,Sec 194B(1) MVA,1000,FC Road Pune,ch003.jpg
+CH004,MH20BK1488,Riding without helmet by Driver,Sec 129/194(D) MVA,1000,Jalna Road Chhatrapati Sambhajinagar,ch004.jpg
+CH005,MH01NT9928,Heavy vehicles continuously driving in right lane,MVDR 4(5)6(2)/177A MVA,0 (Court),Mumbai-Pune Expressway,ch005.jpg
+CH006,MH15NZ7201,Drive a motor cycle with triple seat,Sec 128(1)/194(C) MVA,1000,College Road Nashik,ch006.jpg
+CH007,MH12ZZ9999,Illegal Number Plate Similar To DADA/ MAMA/ BABA Etc.,CMVR 51/177 MVA,1000,Swargate Chowk Pune,ch007.jpg
+CH008,MH01AV8867,Dazzling Light,MMVR 235/177 MVA,500,"Pune, Maharashtra",uploaded_evidence.jpg
+CH009,K6C695,No entry in prescribed time limit period for specific vehicle / No entry on Bridge (2W-3W - HMV),Sec 119/177 MVA,500,"Pune, Maharashtra",uploaded_evidence.jpg

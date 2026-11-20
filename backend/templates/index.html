@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a4da2">
+  <title>eChallan Verify | Evidence Review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <div class="gov-strip"><div><span><b>Trained on Sample Data</b> · Not an official enforcement system</span><span>Synthetic challan and registry data</span></div></div>
+
+  <header class="masthead"><div class="masthead-in">
+    <div class="brand-block">
+      <div class="logo" aria-hidden="true">eC</div>
+      <div>
+        <div class="brand">eChallan <span>Verify</span></div>
+        <div class="subtitle">Traffic evidence review desk</div>
+      </div>
+    </div>
+    <dl class="telemetry" aria-label="System status">
+      <div><dt>Vehicle records</dt><dd id="vehicle-count">—</dd></div>
+      <div><dt>Challan records</dt><dd id="challan-count">—</dd></div>
+      <div><dt>API status</dt><dd><span class="stat-dot" id="api-dot" aria-hidden="true"></span><span id="api-status">Checking…</span></dd></div>
+    </dl>
+  </div></header>
+
+  <main class="page">
+    <section class="page-heading">
+      <h1>Evidence review</h1>
+      <p>Check a challan against the photo evidence: registration text and vehicle type are compared, then a reviewer records the final decision.</p>
+    </section>
+
+    <div class="console">
+      <aside class="panel upload-panel">
+        <div class="panel-head">
+          <h2>Intake</h2>
+          <p class="panel-description">Choose a challan and attach its evidence image.</p>
+        </div>
+        <div class="panel-body">
+          <form id="verify-form">
+            <label for="challan-id">Challan record</label>
+            <select id="challan-id" required><option value="">Loading challans…</option></select>
+
+            <label for="evidence-file">Traffic evidence image</label>
+            <label class="dropzone" id="dropzone">
+              <img id="dz-preview" class="dz-preview" alt="Selected evidence preview">
+              <svg class="dz-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4m0 0L7 9m5-5l5 5"/><path d="M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3"/></svg>
+              <strong id="dz-title">Drop an image or browse</strong>
+              <small id="dz-sub">JPG, PNG or WEBP · up to 10 MB</small>
+              <input id="evidence-file" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" required>
+            </label>
+            <p class="helper">Use images you have permission to process.</p>
+
+            <button id="submit-button" class="button button-primary" type="submit">Analyze evidence</button>
+            <div id="form-notice" class="notice" role="status" aria-live="polite"></div>
+          </form>
+        </div>
+      </aside>
+
+      <section class="panel result-panel" id="result-panel" aria-labelledby="result-heading">
+        <div class="panel-head">
+          <h2 id="result-heading">Case file</h2>
+          <p class="panel-description">AI output is a starting point. Check the evidence before you decide.</p>
+        </div>
+
+        <div id="empty-result" class="empty-state">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h7"/></svg>
+          <strong>No case loaded</strong>
+          <p>Pick a challan and upload its image to open the case file.</p>
+        </div>
+
+        <div id="result-content" class="result-content" aria-live="polite" hidden>
+          <div class="casefile-id"><span>Challan</span><b id="result-challan">—</b></div>
+
+          <div class="findings">
+            <div class="f-row f-head"><span>Check</span><span>Challan record</span><span>AI reading</span><span>Outcome</span></div>
+
+            <div class="f-row">
+              <div class="f-check">Registration</div>
+              <div class="f-cell"><small>Expected plate</small><strong id="result-expected" class="plate">—</strong></div>
+              <div class="f-cell">
+                <small>Plate detected</small><strong id="result-detected">—</strong>
+                <span>Detection confidence <b id="result-confidence">—</b></span>
+                <div class="meter"><i id="plate-meter"></i></div>
+              </div>
+              <div><div id="result-status" class="status status-neutral">Awaiting result</div></div>
+            </div>
+
+            <div class="f-row">
+              <div class="f-check">Vehicle type</div>
+              <div class="f-cell">
+                <small>Registered as</small><strong id="registered-vehicle-type">—</strong>
+                <p id="registered-vehicle-category">—</p>
+              </div>
+              <div class="f-cell">
+                <small>Detected as</small><strong id="detected-vehicle-type">—</strong>
+                <p id="detected-vehicle-category">—</p>
+                <span>Confidence <b id="vehicle-confidence">—</b> · Plate link <b id="plate-vehicle-association">—</b></span>
+                <div class="meter"><i id="vehicle-meter"></i></div>
+              </div>
+              <div><div id="vehicle-type-status" class="status status-neutral">Awaiting vehicle analysis</div></div>
+            </div>
+          </div>
+
+          <div class="block two-col">
+            <div><h3>Registration explanation</h3><p id="result-reason" class="reason">—</p></div>
+            <div><h3>Vehicle-type explanation</h3><p id="vehicle-type-reason" class="reason">Vehicle comparison will appear here.</p></div>
+          </div>
+
+          <div class="block">
+            <h3>Evidence</h3>
+            <div class="tabs" role="tablist">
+              <button type="button" role="tab" aria-selected="true" data-tab="annotated">Annotated</button>
+              <button type="button" role="tab" aria-selected="false" data-tab="original">Original</button>
+              <button type="button" role="tab" aria-selected="false" data-tab="plate">Plate crop</button>
+            </div>
+            <div class="pane active" data-pane="annotated">
+              <div class="legend">
+                <span><i class="legend-box legend-plate"></i> Number plate</span>
+                <span><i class="legend-box legend-vehicle"></i> Vehicle</span>
+                <span>Labels show predicted class and confidence.</span>
+              </div>
+              <img id="annotated-preview" class="preview" alt="Evidence with vehicle and number plate bounding boxes" hidden>
+              <p id="annotated-unavailable" class="helper" hidden>No annotated preview is available.</p>
+            </div>
+            <div class="pane" data-pane="original">
+              <img id="evidence-preview" class="preview" alt="Original uploaded traffic evidence" hidden>
+            </div>
+            <div class="pane" data-pane="plate">
+              <img id="plate-preview" class="preview plate-preview" alt="Cropped detected number plate" hidden>
+              <p id="plate-unavailable" class="helper" hidden>No plate crop is available for this image.</p>
+            </div>
+          </div>
+
+          <div class="block two-col">
+            <div><h3>OCR candidates</h3><div id="ocr-list" class="stack-list"></div></div>
+            <div><h3>Vehicle detections</h3><div id="vehicle-detection-list" class="stack-list"></div></div>
+          </div>
+
+          <details class="block">
+            <summary>Synthetic registry record</summary>
+            <p class="helper">Generated academic test data, not official VAHAN records.</p>
+            <dl class="ledger">
+              <div><dt>Registry source</dt><dd id="registry-source">—</dd></div>
+              <div><dt>Registration number</dt><dd id="registry-registration">—</dd></div>
+              <div><dt>Manufacturer</dt><dd id="registry-manufacturer">—</dd></div>
+              <div><dt>Model</dt><dd id="registry-model">—</dd></div>
+              <div><dt>Fuel type</dt><dd id="registry-fuel">—</dd></div>
+              <div><dt>Registration date</dt><dd id="registry-date">—</dd></div>
+              <div><dt>RTO code</dt><dd id="registry-rto">—</dd></div>
+              <div><dt>Record status</dt><dd id="registry-status">—</dd></div>
+              <div><dt>Data source label</dt><dd id="registry-data-source">—</dd></div>
+            </dl>
+            <p id="registry-not-found" class="helper" hidden>No matching synthetic registry record was found for this challan registration.</p>
+          </details>
+
+          <section class="block">
+            <h3>Reviewer decision</h3>
+            <p class="helper" style="margin:0 0 14px">Record separate decisions for registration and vehicle type. They do not change the AI results.</p>
+            <form id="review-form">
+              <div class="two-col">
+                <div>
+                  <label for="registration-decision">Registration</label>
+                  <select id="registration-decision" required>
+                    <option value="">Select registration decision</option>
+                    <option value="confirmed_match">Confirmed registration match</option>
+                    <option value="mismatch">Registration mismatch identified</option>
+                    <option value="needs_review">Needs further review</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="vehicle-type-decision">Vehicle type</label>
+                  <select id="vehicle-type-decision" required>
+                    <option value="">Select vehicle-type decision</option>
+                    <option value="confirmed_match">Confirmed vehicle-type match</option>
+                    <option value="mismatch">Vehicle-type mismatch identified</option>
+                    <option value="needs_review">Needs further review</option>
+                  </select>
+                </div>
+              </div>
+              <label for="review-notes">Notes</label>
+              <textarea id="review-notes" maxlength="2000" rows="4" placeholder="Explain your independent assessment..."></textarea>
+              <button id="save-review-button" class="button button-primary" type="submit" style="width:auto">Save reviewer decisions</button>
+              <div id="review-notice" class="notice" role="status" aria-live="polite"></div>
+            </form>
+
+            <h3 class="history-heading">Previous reviews for this challan</h3>
+            <div id="review-history" class="stack-list"><p class="helper">Analyze a challan to load its review history.</p></div>
+          </section>
+
+          <p class="disclaimer">AI output is advisory. A registration or vehicle-type match does not prove a violation or image authenticity. Uncertain cases need human review.</p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer><div class="foot-in">
+    <div><b>eChallan Verify</b><p>Academic prototype for reviewing traffic evidence with AI assistance.</p></div>
+    <div><b>Data</b><p>All challans and registry records are synthetic. Nothing here comes from VAHAN or any official source.</p></div>
+    <div><b>Use</b><p>Results are advisory. A human reviewer makes every final decision.</p></div>
+  </div></footer>
+</body>
+</html>
